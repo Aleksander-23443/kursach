@@ -1,5 +1,10 @@
 from tkinter import *
 from tkinter import ttk
+import pandas as pd
+#from PIL import Image, ImageTk
+from tkinter import filedialog, messagebox
+
+
 
 class DataProcessApp:
     def __init__(self, root):
@@ -8,19 +13,40 @@ class DataProcessApp:
         self.root.title("Программа для очистки и подготовки данных для машинного обучения")
         self.root.geometry("1000x900")
         self.root.resizable(width=False, height=False)
+        self.data = None
+
+        #создание стиля
+        self.style = ttk.Style()
+        self.style.configure("Custom.TLabel", font=("Arial", 15))
+
+
+
 
         #блок загрузки данных
         self.load_frame = ttk.Frame(master=self.root, height=600, width=300, relief=RAISED)
         self.load_frame.place(x=0, y=0)
 
-        self.load_button = ttk.Button(master=self.load_frame, text="Загрузить txt файл")
+
+        #self.image = Image.open("free-icon-data-processing-4536820.png")
+        #self.image = self.image.resize((290, 290))
+        #self.photo = ImageTk.PhotoImage(self.image)
+        #self.label_image = ttk.Label(master=self.load_frame, image=self.photo)
+        #self.label_image.place(x=0, y= 40)
+
+        self.load_button = ttk.Button(master=self.load_frame, text="Загрузить txt файл", command=self.load_date)
         self.load_button.place(x=83, y=400)
 
-
-
         #блок просмотра части файла
-        self.watch_frame = ttk.Frame(master=self.root, height=600, width=400, relief=RAISED, borderwidth=2)
+        self.watch_frame = ttk.Frame(master=self.root, height=600, width=400, relief=RAISED)
         self.watch_frame.place(x=300, y=0)
+
+        self.label_watch = ttk.Label(master=self.watch_frame,text="Загруженный файл", style="Custom.TLabel")
+        self.label_watch.place(x=110, y=10)
+
+        self.tree = ttk.Treeview(self.watch_frame, columns=[], show="headings")
+        self.tree.place(x=5, y=50, height=500, width=390)
+
+
 
 
         #блок обработки данных
@@ -28,13 +54,67 @@ class DataProcessApp:
         self.dataProcessing_frame.place(x=700, y=0)
 
 
+        self.process_label = ttk.Label(master=self.dataProcessing_frame, text="Очистка и подготовка данных", style="Custom.TLabel")
+        self.process_label.place(x=5, y=10)
+
+
+        self.process_btn = ttk.Button(master=self.dataProcessing_frame, text="Очистить и подготовить дынные", command=self.process_label)
+        self.process_btn.place(x=60, y=500)
+
+        #блок статуса
+        self.status_frame = ttk. Frame(master=self.root, height=300, width=400, relief=RAISED)
+        self.status_frame.place(x=0, y=600)
+
+        self.status_var = StringVar()
 
 
 
 
 
+    def load_date(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Текстовые файлы", ".txt")])
+        self.data = pd.read_csv(file_path, delimiter=' ')
+        if not file_path:
+            return
+
+        try:
+
+            for row in self.tree.get_children():
+                self.tree.delete(row)
+            with open(file_path, "r", encoding="utf-8") as file:
+                lines = file.readlines()
+
+                if not lines:
+                    return
+
+                num_columns = len(lines[0].strip().split())
+
+                self.tree["columns"] = [str(i) for i in range(1, num_columns+1)]
+
+                for col in self.tree["columns"]:
+                    self.tree.heading(col, text=f"{col}")
+                    self.tree.column(col, stretch=False, width=50)
+                    self.root.update_idletasks()
+
+                for row_index, line in enumerate(lines, start=1):
+                    value = line.strip().split()
+                    self.tree.insert("", END, iid=row_index, text=f"Строка{row_index}", values=value)
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось загрузить файл: {e}")
 
 
+    def process_data(self):
+        if self.data is not None:
+            try:
+
+                self.data.drop_duplicates(inplace=True)
+
+                self.data.dropna(inplace=True)
+                self.status_var.set("Данные очищены и подготовлены")
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Ошибка при обработке данных: {e}")
+        else:
+            messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
 
 
 
