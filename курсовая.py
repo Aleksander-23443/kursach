@@ -62,10 +62,19 @@ class DataProcessApp:
         self.process_btn.place(x=60, y=500)
 
         #блок статуса
-        self.status_frame = ttk. Frame(master=self.root, height=300, width=400, relief=RAISED)
+        self.status_frame = ttk.Frame(master=self.root, height=300, width=400, relief=RAISED)
         self.status_frame.place(x=0, y=600)
 
         self.status_var = StringVar()
+
+
+        #блок сохранения изменённого файла
+
+        self.save_frame = ttk.Frame(master=self.root, height=300, width=600, relief=RAISED)
+        self.save_frame.place(x=400, y=600)
+
+        self.save_btn = ttk.Button(master=self.save_frame, text="Сохранить в формате CSV")
+        self.save_btn.place(x=100, y=150)
 
 
 
