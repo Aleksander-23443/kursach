@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 import pandas as pd
-
+import threading
 # from PIL import Image, ImageTk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -37,11 +37,9 @@ class DataProcessApp:
         # self.label_image.place(x=0, y= 40)
 
         self.load_button = ttk.Button(
-            master=self.load_frame, text="Загрузить txt файл", command=self.load_date
+            master=self.load_frame, text="Загрузить txt файл", command=self.load_data
         )
-        self.load_button.place(
-            x=50, y=400, height=30, width=200
-        )
+        self.load_button.place(x=50, y=400, height=30, width=200)
 
         # блок просмотра части файла
         self.watch_frame = ttk.Frame(
@@ -55,8 +53,7 @@ class DataProcessApp:
         self.label_watch.place(x=110, y=10)
 
         self.tree = ttk.Treeview(self.watch_frame, columns=[], show="headings")
-        self.tree.place(
-            x=5, y=50, height=500, width=390)
+        self.tree.place(x=5, y=50, height=500, width=390)
 
         # блок обработки данных
         self.dataProcessing_frame = ttk.Frame(
@@ -72,8 +69,7 @@ class DataProcessApp:
         self.process_label.place(x=5, y=10)
 
         self.delete_columns_btn = ttk.Button(
-            master=self.dataProcessing_frame,
-            text="Выбрать столбцы для удаления"
+            master=self.dataProcessing_frame, text="Выбрать столбцы для удаления"
         )
         self.delete_columns_btn.place(x=60, y=460, height=30, width=200)
 
@@ -109,17 +105,20 @@ class DataProcessApp:
         self.save_btn = ttk.Button(
             master=self.save_frame,
             text="Сохранить в формате CSV",
-            command=self.save_date
+            command=self.save_data,
         )
         self.save_btn.place(x=200, y=150, height=30, width=200)
 
-    def load_date(self):
+    def load_data(self):
         file_path = filedialog.askopenfilename(filetypes=[("Текстовые файлы", ".txt")])
-        self.data = pd.read_csv(file_path, delimiter=" ")
+
         if not file_path:
             return
 
         try:
+            self.data = pd.read_csv(file_path, delimiter=" ")
+            self.update_treeview()
+            self.status_var.set("Статус: Данные загружены")
 
             for row in self.tree.get_children():
                 self.tree.delete(row)
@@ -145,6 +144,27 @@ class DataProcessApp:
                     )
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось загрузить файл: {e}")
+    def start_processing(self):
+        if self.data is not None:
+            threading.Thread(target=self.process_data).start()
+        else:
+            messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
+
+
+    def update_treeview(self):
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        self.tree["columns"] = list(range(1, len(self.data.columns) + 1))
+
+        for i in range(len(self.data.columns)):
+            self.tree.heading(i + 1, text=str(i + 1))
+            self.tree.column(i + 1, stretch=False, width=100)
+            self.root.update_idletasks()
+
+        for ind, row in self.data.iterrows():
+            self.tree.insert(
+                "", END, iid=ind, text=f"Строка {ind+1}", values=row.tolist()
+            )
 
     def process_data(self):
         if self.data is not None:
@@ -167,8 +187,6 @@ class DataProcessApp:
             if file_path:
                 self.data.to_csv(file_path, index=False)
                 messagebox.showinfo("Успех", "Файл успешно сохранен")
-
-
 
 
 if __name__ == "__main__":
