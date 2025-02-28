@@ -2,8 +2,9 @@ from tkinter import *
 from tkinter import ttk
 import pandas as pd
 import threading
-
-# from PIL import Image, ImageTk
+import numpy as np
+from PIL import Image
+from PIL import ImageTk
 from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -32,11 +33,11 @@ class DataProcessApp:
         )
         self.load_frame.place(x=0, y=0)
 
-        # self.image = Image.open("free-icon-data-processing-4536820.png")
-        # self.image = self.image.resize((290, 290))
-        # self.photo = ImageTk.PhotoImage(self.image)
-        # self.label_image = ttk.Label(master=self.load_frame, image=self.photo)
-        # self.label_image.place(x=0, y= 40)
+        self.image = Image.open("image_data_process.png")
+        self.image = self.image.resize((290, 290))
+        self.photo = ImageTk.PhotoImage(self.image)
+        self.label_image = ttk.Label(master=self.load_frame, image=self.photo)
+        self.label_image.place(x=0, y=40)
 
         self.load_button = ttk.Button(
             master=self.load_frame, text="Загрузить txt файл", command=self.load_data
@@ -120,7 +121,30 @@ class DataProcessApp:
             return
 
         try:
-            self.original_data = pd.read_csv(file_path, delimiter=" ")
+            temp_data = pd.read_csv(
+                file_path, sep=r"\s+", engine="python", na_filter=False
+            )
+            temp_data = temp_data.dropna(axis=1, how="all")
+            if temp_data.empty:
+                messagebox.showerror(
+                    title="Ошибка",
+                    message="Файл пуст. Выберите другой файл.",
+                )
+                return
+            if len(temp_data.columns) == 0:
+                messagebox.showerror(
+                    title="Ошибка",
+                    message="Файл не содержит данных или заголовков столбцов.",
+                )
+                return
+
+            if not all(temp_data.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
+                messagebox.showwarning(
+                    title="Предупреждение",
+                    message="Некоторые столбцы содержат нечисловые значения.",
+                )
+
+            self.original_data = temp_data.copy()
             self.data = self.original_data.copy()
             self.update_treeview()
             self.status_var.set("Статус: Данные загружены")
