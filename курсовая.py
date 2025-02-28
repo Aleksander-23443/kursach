@@ -1,88 +1,112 @@
 from tkinter import *
 from tkinter import ttk
 import pandas as pd
-#from PIL import Image, ImageTk
-from tkinter import filedialog, messagebox
 
+# from PIL import Image, ImageTk
+from tkinter import filedialog
+from tkinter import messagebox
+from tkinter import simpledialog
 
 
 class DataProcessApp:
     def __init__(self, root):
         self.root = root
-        #root["bg"] = "green"
-        self.root.title("Программа для очистки и подготовки данных для машинного обучения")
+        # root["bg"] = "green"
+        self.root.title(
+            "Программа для очистки и подготовки данных для машинного обучения"
+        )
         self.root.geometry("1000x900")
         self.root.resizable(width=False, height=False)
         self.data = None
+        self.columns_for_drop = []
 
-        #создание стиля
+        # создание стиля
         self.style = ttk.Style()
         self.style.configure("Custom.TLabel", font=("Arial", 15))
 
-
-
-
-        #блок загрузки данных
-        self.load_frame = ttk.Frame(master=self.root, height=600, width=300, relief=RAISED)
+        # блок загрузки данных
+        self.load_frame = ttk.Frame(
+            master=self.root, height=600, width=300, relief=RAISED
+        )
         self.load_frame.place(x=0, y=0)
 
+        # self.image = Image.open("free-icon-data-processing-4536820.png")
+        # self.image = self.image.resize((290, 290))
+        # self.photo = ImageTk.PhotoImage(self.image)
+        # self.label_image = ttk.Label(master=self.load_frame, image=self.photo)
+        # self.label_image.place(x=0, y= 40)
 
-        #self.image = Image.open("free-icon-data-processing-4536820.png")
-        #self.image = self.image.resize((290, 290))
-        #self.photo = ImageTk.PhotoImage(self.image)
-        #self.label_image = ttk.Label(master=self.load_frame, image=self.photo)
-        #self.label_image.place(x=0, y= 40)
+        self.load_button = ttk.Button(
+            master=self.load_frame, text="Загрузить txt файл", command=self.load_date
+        )
+        self.load_button.place(
+            x=83, y=400, height=30, width=200
+        )
 
-        self.load_button = ttk.Button(master=self.load_frame, text="Загрузить txt файл", command=self.load_date)
-        self.load_button.place(x=83, y=400)
-
-        #блок просмотра части файла
-        self.watch_frame = ttk.Frame(master=self.root, height=600, width=400, relief=RAISED)
+        # блок просмотра части файла
+        self.watch_frame = ttk.Frame(
+            master=self.root, height=600, width=400, relief=RAISED
+        )
         self.watch_frame.place(x=300, y=0)
 
-        self.label_watch = ttk.Label(master=self.watch_frame,text="Загруженный файл", style="Custom.TLabel")
+        self.label_watch = ttk.Label(
+            master=self.watch_frame, text="Загруженный файл", style="Custom.TLabel"
+        )
         self.label_watch.place(x=110, y=10)
 
         self.tree = ttk.Treeview(self.watch_frame, columns=[], show="headings")
-        self.tree.place(x=5, y=50, height=500, width=390)
+        self.tree.place(
+            x=5, y=50, height=500, width=390)
 
-
-
-
-        #блок обработки данных
-        self.dataProcessing_frame = ttk.Frame(master=self.root, height=600, width=300, relief=RAISED)
+        # блок обработки данных
+        self.dataProcessing_frame = ttk.Frame(
+            master=self.root, height=600, width=300, relief=RAISED
+        )
         self.dataProcessing_frame.place(x=700, y=0)
 
-
-        self.process_label = ttk.Label(master=self.dataProcessing_frame, text="Очистка и подготовка данных", style="Custom.TLabel")
+        self.process_label = ttk.Label(
+            master=self.dataProcessing_frame,
+            text="Очистка и подготовка данных",
+            style="Custom.TLabel",
+        )
         self.process_label.place(x=5, y=10)
 
+        self.drop_columns_btn = ttk.Button(
+            master=self.dataProcessing_frame,
+            text="Выбрать столбцы для удаления",
+        )
+        self.drop_columns_btn.place(x=60, y=460, height=30, width=200)
 
-        self.process_btn = ttk.Button(master=self.dataProcessing_frame, text="Очистить и подготовить дынные", command=self.process_label)
-        self.process_btn.place(x=60, y=500)
+        self.process_btn = ttk.Button(
+            master=self.dataProcessing_frame,
+            text="Очистить и подготовить дынные",
+            command=self.process_label,
+        )
+        self.process_btn.place(x=60, y=500, height=30, width=200)
 
-        #блок статуса
-        self.status_frame = ttk.Frame(master=self.root, height=300, width=400, relief=RAISED)
+        # блок статуса
+        self.status_frame = ttk.Frame(
+            master=self.root, height=300, width=400, relief=RAISED
+        )
         self.status_frame.place(x=0, y=600)
 
         self.status_var = StringVar()
 
+        # блок сохранения изменённого файла
 
-        #блок сохранения изменённого файла
-
-        self.save_frame = ttk.Frame(master=self.root, height=300, width=600, relief=RAISED)
+        self.save_frame = ttk.Frame(
+            master=self.root, height=300, width=600, relief=RAISED
+        )
         self.save_frame.place(x=400, y=600)
 
-        self.save_btn = ttk.Button(master=self.save_frame, text="Сохранить в формате CSV")
-        self.save_btn.place(x=100, y=150)
-
-
-
-
+        self.save_btn = ttk.Button(
+            master=self.save_frame, text="Сохранить в формате CSV"
+        )
+        self.save_btn.place(x=200, y=150, height=30, width=200)
 
     def load_date(self):
         file_path = filedialog.askopenfilename(filetypes=[("Текстовые файлы", ".txt")])
-        self.data = pd.read_csv(file_path, delimiter=' ')
+        self.data = pd.read_csv(file_path, delimiter=" ")
         if not file_path:
             return
 
@@ -98,7 +122,7 @@ class DataProcessApp:
 
                 num_columns = len(lines[0].strip().split())
 
-                self.tree["columns"] = [str(i) for i in range(1, num_columns+1)]
+                self.tree["columns"] = [str(i) for i in range(1, num_columns + 1)]
 
                 for col in self.tree["columns"]:
                     self.tree.heading(col, text=f"{col}")
@@ -107,10 +131,11 @@ class DataProcessApp:
 
                 for row_index, line in enumerate(lines, start=1):
                     value = line.strip().split()
-                    self.tree.insert("", END, iid=row_index, text=f"Строка{row_index}", values=value)
+                    self.tree.insert(
+                        "", END, iid=row_index, text=f"Строка{row_index}", values=value
+                    )
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось загрузить файл: {e}")
-
 
     def process_data(self):
         if self.data is not None:
@@ -124,7 +149,6 @@ class DataProcessApp:
                 messagebox.showerror("Ошибка", f"Ошибка при обработке данных: {e}")
         else:
             messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
-
 
 
 if __name__ == "__main__":
