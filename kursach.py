@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 import pandas as pd
 import threading
+
 # from PIL import Image, ImageTk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -69,7 +70,9 @@ class DataProcessApp:
         self.process_label.place(x=5, y=10)
 
         self.delete_columns_btn = ttk.Button(
-            master=self.dataProcessing_frame, text="Выбрать столбцы для удаления"
+            master=self.dataProcessing_frame,
+            text="Выбрать столбцы для удаления",
+            command=self.choice_columns_for_drop,
         )
         self.delete_columns_btn.place(x=60, y=460, height=30, width=200)
 
@@ -120,36 +123,14 @@ class DataProcessApp:
             self.update_treeview()
             self.status_var.set("Статус: Данные загружены")
 
-            for row in self.tree.get_children():
-                self.tree.delete(row)
-            with open(file_path, "r", encoding="utf-8") as file:
-                lines = file.readlines()
-
-                if not lines:
-                    return
-
-                num_columns = len(lines[0].strip().split())
-
-                self.tree["columns"] = [str(i) for i in range(1, num_columns + 1)]
-
-                for col in self.tree["columns"]:
-                    self.tree.heading(col, text=f"{col}")
-                    self.tree.column(col, stretch=False, width=50)
-                    self.root.update_idletasks()
-
-                for row_index, line in enumerate(lines, start=1):
-                    value = line.strip().split()
-                    self.tree.insert(
-                        "", END, iid=row_index, text=f"Строка{row_index}", values=value
-                    )
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось загрузить файл: {e}")
+
     def start_processing(self):
         if self.data is not None:
             threading.Thread(target=self.process_data).start()
         else:
             messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
-
 
     def update_treeview(self):
         for row in self.tree.get_children():
@@ -167,17 +148,19 @@ class DataProcessApp:
             )
 
     def process_data(self):
-        if self.data is not None:
-            try:
+        try:
 
-                self.data.drop_duplicates(inplace=True)
+            if self.columns_for_drop:
+                self.data.drop(
+                    self.data.columns[self.columns_for_drop], axis=1, inplace=True
+                )
+            self.data.drop_duplicates(inplace=True)
+            self.data.dropna(inplace=True)
+            self.update_treeview()
+            self.status_var.set("Статус: Данные очищены и подготовлены")
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Ошибка при обработке данных: {e}")
 
-                self.data.dropna(inplace=True)
-                self.status_var.set("Данные очищены и подготовлены")
-            except Exception as e:
-                messagebox.showerror("Ошибка", f"Ошибка при обработке данных: {e}")
-        else:
-            messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
 
     def save_data(self):
         if self.data is not None:
@@ -187,6 +170,22 @@ class DataProcessApp:
             if file_path:
                 self.data.to_csv(file_path, index=False)
                 messagebox.showinfo("Успех", "Файл успешно сохранен")
+
+    def choice_columns_for_drop(self):
+        if self.data is not None:
+            self.columns_for_drop = simpledialog.askstring(
+                title="Выбор столбцов",
+                prompt="Введите номера столбцов для удаление:",
+            )
+            if self.columns_for_drop:
+                self.columns_for_drop = [
+                    int(i) - 1 for i in self.columns_for_drop.split(",")
+                ]
+                self.status_var.set("Статус: выбраны столбцы для удаления")
+        else:
+            messagebox.showwarning(
+                title="Предупреждение", message="Сначала загрузите данные"
+            )
 
 
 if __name__ == "__main__":
