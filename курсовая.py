@@ -107,7 +107,9 @@ class DataProcessApp:
         self.save_frame.place(x=400, y=600)
 
         self.save_btn = ttk.Button(
-            master=self.save_frame, text="Сохранить в формате CSV"
+            master=self.save_frame,
+            text="Сохранить в формате CSV",
+            command=self.save_date
         )
         self.save_btn.place(x=200, y=150, height=30, width=200)
 
@@ -156,6 +158,17 @@ class DataProcessApp:
                 messagebox.showerror("Ошибка", f"Ошибка при обработке данных: {e}")
         else:
             messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
+
+    def save_data(self):
+        if self.data is not None:
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".csv", filetypes=[("CSV файлы", "*.csv")]
+            )
+            if file_path:
+                self.data.to_csv(file_path, index=False)
+                messagebox.showinfo("Успех", "Файл успешно сохранен")
+
+
 
 
 if __name__ == "__main__":
