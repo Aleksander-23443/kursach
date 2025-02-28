@@ -40,7 +40,7 @@ class DataProcessApp:
             master=self.load_frame, text="Загрузить txt файл", command=self.load_date
         )
         self.load_button.place(
-            x=83, y=400, height=30, width=200
+            x=50, y=400, height=30, width=200
         )
 
         # блок просмотра части файла
@@ -71,11 +71,11 @@ class DataProcessApp:
         )
         self.process_label.place(x=5, y=10)
 
-        self.drop_columns_btn = ttk.Button(
+        self.delete_columns_btn = ttk.Button(
             master=self.dataProcessing_frame,
-            text="Выбрать столбцы для удаления",
+            text="Выбрать столбцы для удаления"
         )
-        self.drop_columns_btn.place(x=60, y=460, height=30, width=200)
+        self.delete_columns_btn.place(x=60, y=460, height=30, width=200)
 
         self.process_btn = ttk.Button(
             master=self.dataProcessing_frame,
@@ -91,6 +91,13 @@ class DataProcessApp:
         self.status_frame.place(x=0, y=600)
 
         self.status_var = StringVar()
+        self.status_var.set("Статус: Ожидание загрузки данных")
+        self.status_label = ttk.Label(
+            master=self.status_frame,
+            textvariable=self.status_var,
+            style="Custom.TLabel",
+        )
+        self.status_label.place(x=10, y=10)
 
         # блок сохранения изменённого файла
 
