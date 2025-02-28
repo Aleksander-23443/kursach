@@ -25,7 +25,7 @@ class DataProcessApp:
 
         # создание стиля
         self.style = ttk.Style()
-        self.style.configure("Custom.TLabel", font=("Arial", 15))
+        self.style.configure(style="Custom.TLabel", font=("Arial", 15))
 
         # блок загрузки данных
         self.load_frame = ttk.Frame(
@@ -151,7 +151,8 @@ class DataProcessApp:
 
         except Exception as e:
             messagebox.showerror(
-                title="Ошибка", message=f"Не удалось загрузить файл: {e}"
+                title="Ошибка",
+                message=f"Не удалось загрузить файл: {e}"
             )
 
     def start_processing(self):
@@ -159,7 +160,8 @@ class DataProcessApp:
             threading.Thread(target=self.process_data).start()
         else:
             messagebox.showwarning(
-                title="Предупреждение", message="Сначала загрузите данные"
+                title="Предупреждение",
+                message="Сначала загрузите данные"
             )
 
     def update_treeview(self):
@@ -190,13 +192,15 @@ class DataProcessApp:
             self.status_var.set("Статус: Данные очищены и подготовлены")
         except Exception as e:
             messagebox.showerror(
-                title="Ошибка", message=f"Ошибка при обработке данных: {e}"
+                title="Ошибка",
+                message=f"Ошибка при обработке данных: {e}"
             )
 
     def save_data(self):
         if self.data is None:
             messagebox.showwarning(
-                title="Предупреждение", message="Нет данных для сохранения"
+                title="Предупреждение",
+                message="Нет данных для сохранения"
             )
             return
 
@@ -213,7 +217,8 @@ class DataProcessApp:
         )
         if file_path:
             self.data.to_csv(file_path, index=False)
-            messagebox.showinfo(title="Успех", message="Файл успешно сохранен")
+            messagebox.showinfo(title="Успех",
+                                message="Файл успешно сохранен")
 
     def choice_columns_for_drop(self):
         if self.data is not None:
@@ -228,7 +233,8 @@ class DataProcessApp:
                 self.status_var.set("Статус: выбраны столбцы для удаления")
         else:
             messagebox.showwarning(
-                title="Предупреждение", message="Сначала загрузите данные"
+                title="Предупреждение",
+                message="Сначала загрузите данные"
             )
 
 
