@@ -100,6 +100,14 @@ class DataProcessApp:
         )
         self.status_label.place(x=10, y=10)
 
+        self.progress = ttk.Progressbar(
+            master=self.status_frame, orient="horizontal", mode="determinate", length=380
+        )
+        self.progress.place(x=10, y=50)
+        self.progress.place_forget()
+
+
+
         # блок сохранения изменённого файла
 
         self.save_frame = ttk.Frame(
@@ -113,6 +121,7 @@ class DataProcessApp:
             command=self.save_data,
         )
         self.save_btn.place(x=200, y=150, height=30, width=200)
+
 
     def load_data(self):
         file_path = filedialog.askopenfilename(filetypes=[("Текстовые файлы", ".txt")])
@@ -149,6 +158,8 @@ class DataProcessApp:
             self.update_treeview()
             self.status_var.set("Статус: Данные загружены")
 
+            self.progress.place(x=10, y=50)
+
         except Exception as e:
             messagebox.showerror(
                 title="Ошибка",
@@ -157,7 +168,7 @@ class DataProcessApp:
 
     def start_processing(self):
         if self.data is not None:
-            threading.Thread(target=self.process_data).start()
+            threading.Thread(target=self.process_data, daemon=True).start()
         else:
             messagebox.showwarning(
                 title="Предупреждение",
@@ -181,13 +192,30 @@ class DataProcessApp:
 
     def process_data(self):
         try:
+            self.status_var.set("Статус: Идет обработка данных...")
+            self.progress["value"] = 0
+            self.root.update_idletasks()
+
+            step = 3
+            step_size = 100 / step
+
+
 
             if self.columns_for_drop:
                 self.data.drop(
                     self.data.columns[self.columns_for_drop], axis=1, inplace=True
                 )
+            self.progress["value"] += step_size
+            self.root.update_idletasks()
+
             self.data.drop_duplicates(inplace=True)
+            self.progress["value"] += step_size
+            self.root.update_idletasks()
+
             self.data.dropna(inplace=True)
+            self.progress["value"] += step_size
+            self.root.update_idletasks()
+
             self.update_treeview()
             self.status_var.set("Статус: Данные очищены и подготовлены")
         except Exception as e:
@@ -219,6 +247,7 @@ class DataProcessApp:
             self.data.to_csv(file_path, index=False)
             messagebox.showinfo(title="Успех",
                                 message="Файл успешно сохранен")
+        self.progress.place_forget()
 
     def choice_columns_for_drop(self):
         if self.data is not None:
