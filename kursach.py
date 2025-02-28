@@ -19,6 +19,7 @@ class DataProcessApp:
         self.root.geometry("1000x900")
         self.root.resizable(width=False, height=False)
         self.data = None
+        self.original_data = None
         self.columns_for_drop = []
 
         # создание стиля
@@ -79,7 +80,7 @@ class DataProcessApp:
         self.process_btn = ttk.Button(
             master=self.dataProcessing_frame,
             text="Очистить и подготовить дынные",
-            command=self.process_label,
+            command=self.start_processing,
         )
         self.process_btn.place(x=60, y=500, height=30, width=200)
 
@@ -119,18 +120,23 @@ class DataProcessApp:
             return
 
         try:
-            self.data = pd.read_csv(file_path, delimiter=" ")
+            self.original_data = pd.read_csv(file_path, delimiter=" ")
+            self.data = self.original_data.copy()
             self.update_treeview()
             self.status_var.set("Статус: Данные загружены")
 
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось загрузить файл: {e}")
+            messagebox.showerror(
+                title="Ошибка", message=f"Не удалось загрузить файл: {e}"
+            )
 
     def start_processing(self):
         if self.data is not None:
             threading.Thread(target=self.process_data).start()
         else:
-            messagebox.showwarning("Предупреждение", "Сначала загрузите данные")
+            messagebox.showwarning(
+                title="Предупреждение", message="Сначала загрузите данные"
+            )
 
     def update_treeview(self):
         for row in self.tree.get_children():
@@ -159,17 +165,31 @@ class DataProcessApp:
             self.update_treeview()
             self.status_var.set("Статус: Данные очищены и подготовлены")
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Ошибка при обработке данных: {e}")
-
+            messagebox.showerror(
+                title="Ошибка", message=f"Ошибка при обработке данных: {e}"
+            )
 
     def save_data(self):
-        if self.data is not None:
-            file_path = filedialog.asksaveasfilename(
-                defaultextension=".csv", filetypes=[("CSV файлы", "*.csv")]
+        if self.data is None:
+            messagebox.showwarning(
+                title="Предупреждение", message="Нет данных для сохранения"
             )
-            if file_path:
-                self.data.to_csv(file_path, index=False)
-                messagebox.showinfo("Успех", "Файл успешно сохранен")
+            return
+
+        if hasattr(self, "original_data") and self.original_data.equals(self.data):
+            confirm = messagebox.askyesno(
+                title="Подтверждение",
+                message="Данные не были изменены. Вы уверены, что хотите сохранить файл?",
+            )
+            if not confirm:
+                return
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".csv", filetypes=[("CSV файлы", "*.csv")]
+        )
+        if file_path:
+            self.data.to_csv(file_path, index=False)
+            messagebox.showinfo(title="Успех", message="Файл успешно сохранен")
 
     def choice_columns_for_drop(self):
         if self.data is not None:
