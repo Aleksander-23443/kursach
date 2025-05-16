@@ -539,6 +539,9 @@ class DataProcessApp(tk.Tk):
         self.display_data(filtered, self.filter_tree)
 
     def reset_filter(self):
+        if self.current_data is None:
+            messagebox.showwarning("Нет данных", "Сначала загрузите файл.")
+            return
         self.display_data(self.current_data, self.filter_tree)
 
     def sort_data(self, ascending=True):
