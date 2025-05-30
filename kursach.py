@@ -481,11 +481,11 @@ class DataProcessApp(tk.Tk):
 
         if idx < len(hist) - 1:
             self.history_indices[self.current_file] = idx + 1
-            self.current_df = self.history[self.current_file][
+            self.current_data = self.history[self.current_file][
                 self.history_indices[self.current_file]
             ][0].copy()
 
-            self.data[self.current_file] = self.current_df
+            self.data[self.current_file] = self.current_data
 
             self.update_process_tab()
             self.update_history_tab()
@@ -533,7 +533,7 @@ class DataProcessApp(tk.Tk):
         if not col or not val:
             return
 
-        df = self.current_df
+        df = self.current_data
         mask = df[col].astype(str).str.contains(val, case=False, na=False)
         filtered = df[mask]
         self.display_data(filtered, self.filter_tree)
@@ -549,7 +549,7 @@ class DataProcessApp(tk.Tk):
         if not col:
             return
         try:
-            sorted_df = self.current_df.sort_values(by=col, ascending=ascending)
+            sorted_df = self.current_data.sort_values(by=col, ascending=ascending)
             self.display_data(sorted_df, self.filter_tree)
         except Exception as e:
             messagebox.showerror(title="Ошибка",
@@ -705,7 +705,7 @@ class DataProcessApp(tk.Tk):
     def update_filter_tab(self):
 
         if self.current_file and self.current_file in self.data:
-            cols = list(self.current_df.columns)
+            cols = list(self.current_data.columns)
             self.search_col_combobox["values"] = cols
             self.sort_col_combo["values"] = cols
             self.group_col_combobox["values"] = cols
@@ -714,7 +714,7 @@ class DataProcessApp(tk.Tk):
             self.sort_col_combo.set("")
             self.group_col_combobox.set("")
 
-            self.display_data(self.current_df, self.filter_tree)
+            self.display_data(self.current_data, self.filter_tree)
             self.stats_text.delete("1.0", tk.END)
         else:
             self.search_col_combobox["values"] = []
